@@ -6,9 +6,9 @@ cluster and cluster size.
 
 ### Cassandra Table workers 
 
-'''CREATE TABLE workers (
+```CREATE TABLE workers (
   task_id text,
   worker_id int,
   PRIMARY KEY (task_id, worker_id)
-) WITH compaction ={'class': 'LeveledCompactionStrategy'};'''
+) WITH compaction ={'class': 'LeveledCompactionStrategy'};```
 
