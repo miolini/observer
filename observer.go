@@ -82,3 +82,9 @@ func (o *WorkerObserver) Observe(taskId string, cassandraHosts string, cassandra
     }
 }
 
+func (o *WorkerObserver) Test(jobId int) (result bool) {
+    o.mutex.Lock()
+    result = jobId % o.total == o.modulus
+    o.mutex.Unlock()
+    return
+}
