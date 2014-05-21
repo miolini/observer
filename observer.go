@@ -22,6 +22,8 @@ func NewWorkerObserver() (o *WorkerObserver) {
     o.mutex = new(sync.Mutex)
     o.total = 1
     o.modulus = 0
+    o.Ttl = 10
+    rand.Seed(time.Now().UnixNano())
     o.id = int(rand.Int31())
     return
 }
@@ -32,7 +34,7 @@ func (o *WorkerObserver) Get() (total int, modulus int) {
     return
 }
 
-func (o *WorkerObserver) Observe(cassandraHosts string, cassandraKeyspace string) (err error) {
+func (o *WorkerObserver) Observe(taskId string, cassandraHosts string, cassandraKeyspace string) (err error) {
     cluster := gocql.NewCluster(strings.Split(cassandraHosts,",")...)
     cluster.Keyspace = cassandraKeyspace
     cluster.NumConns = 2
@@ -43,15 +45,15 @@ func (o *WorkerObserver) Observe(cassandraHosts string, cassandraKeyspace string
     if err != nil {
         return
     }
-    taskId := "checker"
     localWorkerTotal := 1
     localWorkerModulus := 0
     defer session.Close()
     rand.Seed(time.Now().UnixNano())
-    var workerId int
     log.Printf("worker watcher: localWorkerId = %d", o.id)
     var counter int
+    var workerId int
     for {
+        //log.Printf("new observe loop")
         err := session.Query("INSERT INTO workers (task_id, worker_id) VALUES (?, ?) USING TTL ?", taskId, o.id, o.Ttl).Consistency(gocql.Quorum).Exec()
         if err != nil {
             log.Printf("worker insert error: %s", err)
